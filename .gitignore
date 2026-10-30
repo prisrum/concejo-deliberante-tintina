@@ -1,0 +1,29 @@
+# Claves y configuraciones privadas
+.env
+.streamlit/secrets.toml
+.streamlit/
+
+# Entorno virtual de Python
+.venv/
+venv/
+
+# Archivos temporales
+__pycache__/
+*.pyc
+
+# Documentos y base de datos locales
+documentos/
+base_documentos.db
+*.db
+
+# Configuración local
+.vscode/
+
+configurar_acceso.py
+generar_claves.py
+prueba.pdf
+*.pdf
+.env
+.streamlit/
+*.db
+documentos/
