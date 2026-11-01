@@ -307,30 +307,66 @@ def extraer_texto_pdf(archivo_pdf):
 # ==============================================
 
 def obtener_fecha(texto):
-    """Busca la fecha del documento."""
+    """Busca la fecha del documento en distintos formatos."""
+
+    import re
+
+    if not texto:
+        return ""
 
     texto = texto.upper()
+    texto = texto.replace("\n", " ")
 
-    # Primero busca la fecha después de SALA DE SESIONES.
-    sala = re.search(
-        r'SALA\s+DE\s+SESIONES.*?(\d{1,2}\s+DE\s+\w+\s+DE\s+\d{4})',
-        texto,
-        re.DOTALL
+    # Normaliza espacios repetidos.
+    texto = re.sub(r"\s+", " ", texto)
+
+    # Meses escritos en español.
+    meses = (
+        r"ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|"
+        r"JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|"
+        r"OCTUBRE|NOVIEMBRE|DICIEMBRE"
     )
 
-    if sala:
-        return sala.group(1)
+    # Formato: TINTINA, 15 DE DICIEMBRE DE 2022
+    # También admite: 15 DE DICIEMBRE DE 2022
+    patron_fecha = (
+        rf"\b(\d{{1,2}}\s+DE\s+(?:{meses})\s+DE\s+\d{{4}})\b"
+    )
 
-    # Si no aparece, busca la primera fecha encontrada.
-    fecha = re.search(
-        r'(\d{1,2}\s+DE\s+\w+\s+DE\s+\d{4})',
+    # Primero intenta encontrar la fecha cerca de una referencia
+    # habitual en documentos del Concejo.
+    referencias = [
+        r"SALA\s+DE\s+SESIONES",
+        r"TINTINA",
+        r"FECHA",
+        r"VISTO"
+    ]
+
+    for referencia in referencias:
+        coincidencia = re.search(
+            referencia + r".{0,180}?" + patron_fecha,
+            texto
+        )
+        if coincidencia:
+            return coincidencia.group(1).strip()
+
+    # Si no encuentra una fecha cerca de esas referencias,
+    # busca cualquier fecha válida en el texto.
+    coincidencia = re.search(patron_fecha, texto)
+
+    if coincidencia:
+        return coincidencia.group(1).strip()
+
+    # Admite fechas numéricas: 15/12/2022 o 15-12-2022.
+    coincidencia = re.search(
+        r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b",
         texto
     )
 
-    if fecha:
-        return fecha.group(1)
+    if coincidencia:
+        return coincidencia.group(1)
 
-    return ""
+    return """"""
 
 
 def obtener_numero(texto):
@@ -2145,22 +2181,3 @@ elif seccion == "❓ Ayuda":
         "Sistema de gestión documental — "
         "Honorable Concejo Deliberante de Tintina."
     )
-
-import hashlib
-import secrets
-
-usuario = "concejo_admin"
-contrasena = secrets.token_urlsafe(12)
-salt = secrets.token_hex(16)
-
-password_hash = hashlib.pbkdf2_hmac(
-    "sha256",
-    contrasena.encode("utf-8"),
-    salt.encode("utf-8"),
-    300_000
-).hex()
-
-print("Usuario:", usuario)
-print("Contraseña:", contrasena)
-print("Salt:", salt)
-print("Password hash:", password_hash)
