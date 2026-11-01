@@ -1,4 +1,5 @@
 streamlit
+streamlit[pdf]
 pandas
 pypdf
 pdf2image
