@@ -1,9 +1,10 @@
-streamlit[pdf]
 pandas
 pypdf
 pdf2image
 pytesseract
 Pillow
 python-dotenv
+streamlit[pdf]
 google-genai
 openpyxl
+plotly
