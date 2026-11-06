@@ -418,18 +418,19 @@ def obtener_tipo(texto):
 
 def analizar_con_gemini(texto):
 
-    # Verificar que exista la clave de Gemini
     if not GEMINI_API_KEY:
         st.error(
-            "No se encontró la clave de Gemini. "
-            "Revisá el archivo .env"
+            "Falta la API key. Revisá Settings → Secrets "
+            "en Streamlit Cloud."
         )
         return None
 
-    # Crear el cliente de Gemini
-    cliente = genai.Client(api_key=GEMINI_API_KEY)
+    try:
+        cliente = genai.Client(api_key=GEMINI_API_KEY)
+    except Exception as error:
+        st.error(f"No se pudo iniciar Gemini: {error}")
+        return None
 
-    # Preparar las instrucciones para analizar el documento
     prompt = f"""
     Analizá el siguiente documento del Concejo Deliberante.
 
@@ -440,18 +441,17 @@ def analizar_con_gemini(texto):
     - area_comision
 
     Devolvé únicamente un JSON válido con esas cuatro claves.
-    Si un dato no aparece en el documento, utilizá null.
+    Si un dato no aparece, utilizá null.
     No inventes información.
 
     TEXTO DEL DOCUMENTO:
     {texto[:30000]}
     """
 
-    # Intentar analizar el documento hasta 3 veces
+    import time
+
     for intento in range(3):
-
         try:
-
             respuesta = cliente.models.generate_content(
                 model="gemini-3.8-flash",
                 contents=prompt,
@@ -460,48 +460,63 @@ def analizar_con_gemini(texto):
                 }
             )
 
-            # Convertir la respuesta de Gemini a un diccionario
+            if not respuesta.text:
+                st.error("Gemini devolvió una respuesta vacía.")
+                return None
+
             datos = json.loads(respuesta.text)
+
+            if not isinstance(datos, dict):
+                st.error("Gemini no devolvió un objeto JSON válido.")
+                return None
 
             return datos
 
         except Exception as error:
+            mensaje = str(error)
+            mensaje_minuscula = mensaje.lower()
 
-            mensaje_error = str(error)
-
-            # Identificar errores que podrían ser temporales
-            error_temporal = any(
-                codigo in mensaje_error
-                for codigo in ["503", "429", "500", "502", "504"]
-            )
-
-            # Si el error no parece temporal, no volver a intentar
-            if not error_temporal:
+            # Detectar límites de cuota que no se resuelven
+            # simplemente esperando unos segundos.
+            if (
+                "quota" in mensaje_minuscula
+                or "billing" in mensaje_minuscula
+                or "resource_exhausted" in mensaje_minuscula
+            ):
                 st.error(
-                    f"Error al analizar el documento con Gemini: {error}"
+                    "Gemini alcanzó un límite de uso o de cuota. "
+                    "Revisá la cuota y el estado de tu API key. "
+                    f"Detalle: {mensaje[:500]}"
                 )
                 return None
 
-            # Si todavía quedan intentos, esperar antes de repetir
+            # Reintentar solo errores potencialmente temporales.
+            error_temporal = any(
+                codigo in mensaje
+                for codigo in ["429", "500", "502", "503", "504"]
+            )
+
+            if not error_temporal:
+                st.error(
+                    f"Error al analizar con Gemini: {mensaje[:500]}"
+                )
+                return None
+
             if intento < 2:
-
-                import time
-
-                espera = 10 * (intento + 1)
+                espera = 5 * (intento + 1)
 
                 st.warning(
-                    f"Gemini está temporalmente ocupado. "
-                    f"Reintentando en {espera} segundos..."
+                    f"Gemini no está disponible por el momento. "
+                    f"Nuevo intento en {espera} segundos."
                 )
 
                 time.sleep(espera)
 
             else:
-
                 st.error(
-                    "No se pudo analizar el documento después "
-                    "de 3 intentos. Podés volver a intentarlo "
-                    "más tarde."
+                    "Gemini no pudo completar el análisis tras "
+                    "3 intentos. Detalle del error: "
+                    f"{mensaje[:500]}"
                 )
 
     return None
