@@ -7,7 +7,7 @@ import hashlib
 import hmac
 from google import genai
 from pypdf import PdfReader
-from pdf2image import convert_from_path
+from pdf2image import convert_from_bytes
 from PIL import Image
 
 import os
@@ -270,17 +270,24 @@ def extraer_texto_pdf(archivo_pdf):
 
         # Si no se encontró texto digital suficiente,
         # intentar reconocer el documento mediante OCR.
+
         if len(texto_completo.strip()) < 50:
 
-            archivo_pdf.seek(0)
+            # Recuperar el contenido del PDF subido
+            contenido_pdf = archivo_pdf.getvalue()
 
-            imagenes = convert_from_path(
-                archivo_pdf,
-                poppler_path=RUTA_POPPLER
-            )
+            # Convertir las páginas del PDF en imágenes
+            if os.name == "nt":
+                imagenes = convert_from_bytes(
+                    contenido_pdf,
+                    poppler_path=RUTA_POPPLER
+                )
+            else:
+                imagenes = convert_from_bytes(contenido_pdf)
 
             texto_completo = ""
 
+            # Aplicar OCR a cada página
             for numero_pagina, imagen in enumerate(imagenes, start=1):
 
                 texto_pagina = pytesseract.image_to_string(
@@ -307,7 +314,7 @@ def extraer_texto_pdf(archivo_pdf):
 # ==============================================
 
 def obtener_fecha(texto):
-    """Busca la fecha del documento en distintos formatos."""
+    """Busca la fecha del documento en formatos habituales."""
 
     import re
 
@@ -315,59 +322,49 @@ def obtener_fecha(texto):
         return ""
 
     texto = texto.upper()
-    texto = texto.replace("\n", " ")
+    texto = re.sub(r"\s+", " ", texto.replace("\n", " "))
 
-    # Normaliza espacios repetidos.
-    texto = re.sub(r"\s+", " ", texto)
-
-    # Meses escritos en español.
     meses = (
-        r"ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|"
-        r"JULIO|AGOSTO|SEPTIEMBRE|SETIEMBRE|"
-        r"OCTUBRE|NOVIEMBRE|DICIEMBRE"
+        r"ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|"
+        r"SEPTIEMBRE|SETIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE"
     )
 
-    # Formato: TINTINA, 15 DE DICIEMBRE DE 2022
-    # También admite: 15 DE DICIEMBRE DE 2022
-    patron_fecha = (
-        rf"\b(\d{{1,2}}\s+DE\s+(?:{meses})\s+DE\s+\d{{4}})\b"
+    # Fecha escrita: 15 DE DICIEMBRE DE 2022
+    fecha_texto = (
+        rf"\b\d{{1,2}}\s+DE\s+(?:{meses})\s+DE\s+\d{{4}}\b"
     )
 
-    # Primero intenta encontrar la fecha cerca de una referencia
-    # habitual en documentos del Concejo.
-    referencias = [
-        r"SALA\s+DE\s+SESIONES",
-        r"TINTINA",
-        r"FECHA",
-        r"VISTO"
-    ]
+    # Primero busca la fecha posterior a SALA DE SESIONES.
+    sala = re.search(
+        rf"SALA\s+DE\s+SESIONES.{{0,500}}?({fecha_texto})",
+        texto
+    )
+    if sala:
+        return sala.group(1).strip()
 
-    for referencia in referencias:
+    # Después busca fechas cerca de referencias habituales.
+    for referencia in (r"TINTINA", r"FECHA", r"VISTO"):
         coincidencia = re.search(
-            referencia + r".{0,180}?" + patron_fecha,
+            rf"{referencia}.{{0,180}}?({fecha_texto})",
             texto
         )
         if coincidencia:
             return coincidencia.group(1).strip()
 
-    # Si no encuentra una fecha cerca de esas referencias,
-    # busca cualquier fecha válida en el texto.
-    coincidencia = re.search(patron_fecha, texto)
-
+    # Busca cualquier fecha escrita en español.
+    coincidencia = re.search(fecha_texto, texto)
     if coincidencia:
-        return coincidencia.group(1).strip()
+        return coincidencia.group(0).strip()
 
-    # Admite fechas numéricas: 15/12/2022 o 15-12-2022.
+    # Admite fechas numéricas como 15/12/2022 o 15-12-2022.
     coincidencia = re.search(
         r"\b(\d{1,2}[/-]\d{1,2}[/-]\d{4})\b",
         texto
     )
-
     if coincidencia:
         return coincidencia.group(1)
 
-    return """"""
-
+    return ""
 
 def obtener_numero(texto):
     """Busca el número del documento."""
@@ -969,7 +966,7 @@ elif seccion == "📄 Documentos":
     with col2:
         documentos_analizados = sum(
             1 for documento in lista_documentos
-            if documento.get("datos")
+            if documento.get("estado") == "Procesado"
         )
 
         st.metric(
@@ -1246,6 +1243,9 @@ elif seccion == "🤖 Procesar documentos":
                     # Extraer el texto del PDF
                 texto = extraer_texto_pdf(archivo)
 
+                st.write("PRUEBA: texto extraído del PDF")
+                st.code(texto[:3000])
+
                 if not texto or not texto.strip():
 
                         errores.append({
@@ -1310,12 +1310,12 @@ elif seccion == "🤖 Procesar documentos":
 
                         documentos_analizados = sum(
                             1 for documento in resultados
-                            if documento.get("datos")
+                            if documento.get("datos") == "Procesado"
                         )
 
                         documentos_pendientes = sum(
                             1 for documento in resultados
-                            if not documento.get("datos")
+                            if documento.get("estado") != "Procesado"
                         )
 
                         if documentos_analizados == len(resultados) and not errores:
@@ -1433,16 +1433,12 @@ elif seccion == "📊 Estadísticas":
 
     documentos_analizados = sum(
         1 for documento in documentos
-        if isinstance(documento.get("datos"), dict)
-        and documento.get("datos")
+        if documento.get("estado") == "Procesado"
     )
 
     documentos_pendientes = sum(
         1 for documento in documentos
-        if not (
-            isinstance(documento.get("datos"), dict)
-            and documento.get("datos")
-        )
+        if documento.get("estado") != "Procesado"
     )
 
     # ==================================================
@@ -1470,7 +1466,7 @@ elif seccion == "📊 Estadísticas":
             "area_comision": datos.get("area_comision"),
             "estado": (
                 "Analizado"
-                if datos
+                if documento.get("estado") == "Procesado"
                 else "Pendiente de análisis"
             )
         })
@@ -1669,6 +1665,16 @@ elif seccion == "📊 Estadísticas":
                 showlegend=False,
                 xaxis_title="Tipo de documento",
                 yaxis_title="Cantidad",
+                yaxis=dict(
+                    tickmode="linear",
+                    tick0=0,
+                    dtick=1,
+                    tickformat=".0f",
+                    range=[
+                        0,
+                        max(1, int(conteo_tipos["Cantidad"].max())) + 0.5
+                    ]
+                ),
                 template="plotly_white"
             )
 
@@ -1708,6 +1714,8 @@ elif seccion == "📊 Estadísticas":
                 .sort_values("anio")
             )
 
+            conteo_anios["anio"] = conteo_anios["anio"].astype(str)
+
             fig_anios = px.line(
                 conteo_anios,
                 x="anio",
@@ -1726,6 +1734,17 @@ elif seccion == "📊 Estadísticas":
             fig_anios.update_layout(
                 xaxis_title="Año",
                 yaxis_title="Cantidad de documentos",
+                xaxis=dict(
+                    type="category",
+                    tickformat=".0f"
+                ),
+                yaxis=dict(
+                    tickmode="linear",
+                    tick0=0,
+                    dtick=1,
+                    tickformat=".0f",
+                    rangemode="tozero"
+                ),
                 template="plotly_white"
             )
 
@@ -1988,196 +2007,278 @@ elif seccion == "📊 Estadísticas":
 
 elif seccion == "❓ Ayuda":
 
-    # ==================================================
+    # ==============================================
     # PÁGINA DE AYUDA Y SOPORTE
-    # ==================================================
+    # ==============================================
 
-    st.title("❓ Ayuda y soporte")
-
-    st.markdown("""
-        <div class="tarjeta">
-            <h3>🏛️ Bienvenido al sistema de gestión documental</h3>
-            <p>
-                Esta sección explica cómo utilizar las principales
-                funciones de la plataforma del Honorable Concejo
-                Deliberante de Tintina.
-            </p>
-            <p>
-                Encontrarás instrucciones para procesar documentos,
-                consultar archivos y comprender los resultados
-                del análisis automático.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # ==================================================
-    # GUÍA DE USO
-    # ==================================================
-
-    st.subheader("📚 Guía de uso")
-
-    with st.expander("📄 1. ¿Cómo cargar documentos PDF?"):
-
-        st.markdown("""
-        **Pasos para incorporar documentos al sistema:**
-
-        1. Ingresá en la sección **🤖 Procesar documentos**.
-        2. Presioná el botón para seleccionar archivos.
-        3. Elegí uno o varios documentos en formato PDF.
-        4. Verificá que los archivos seleccionados sean correctos.
-        5. Presioná **Procesar documentos**.
-        6. Esperá a que finalice el procesamiento.
-        7. y listo. podés ingresar a la sección **📄Documentos**
-
-        """)
-
-    with st.expander("🤖 2. ¿Cómo funciona el análisis con inteligencia artificial?"):
-
-        st.markdown("""
-        El sistema utiliza Google Gemini para analizar el texto
-        extraído de los documentos.
-
-        Cuando el análisis funciona correctamente, puede identificar:
-
-        - Fecha del documento.
-        - Año.
-        - Tipo de documento.
-        - Número del documento.
-        - Tema principal.
-        - Categoría general.
-        - Descripción.
-        - Área o comisión relacionada.
-
-        La información que no aparece en el documento puede quedar
-        sin identificar.
-
-        **Recomendación:** revisá los resultados antes de utilizarlos
-        como información institucional definitiva.
-        """)
-
-    with st.expander("📂 3. ¿Cómo consultar los documentos?"):
-
-        st.markdown("""
-        Ingresá en **📄 Documentos** para consultar el repositorio
-        documental y revisar las opciones disponibles.
-
-        Según las funciones habilitadas, podrás consultar los datos
-        extraídos y visualizar o descargar el PDF original.
-
-        Si un documento no aparece, comprobá que se haya procesado
-        y que continúe disponible en la sesión actual.
-        """)
-
-    with st.expander("📊 4. ¿Cómo interpretar las estadísticas?"):
-
-        st.markdown("""
-        La sección **📊 Estadísticas** presenta indicadores y gráficos
-        construidos a partir de los documentos procesados.
-
-        Entre otros datos, puede mostrar:
-
-        - Cantidad total de documentos.
-        - Documentos analizados con inteligencia artificial.
-        - Tipos de documentos identificados.
-        - Actividad documental por año.
-        - Categorías y áreas o comisiones.
-        - Documentos pendientes de análisis.
-
-        Los gráficos dependen de la información disponible.
-        Si faltan documentos o no se identificaron determinados
-        campos, algunos gráficos pueden aparecer vacíos.
-        """)
-
-    # ==================================================
-    # PROBLEMAS FRECUENTES
-    # ==================================================
-
-    st.markdown("---")
-
-    st.subheader("🛠️ Problemas frecuentes")
-
-    with st.expander("❌ El sistema no puede leer un PDF"):
-
-        st.markdown("""
-        **Posibles causas:**
-
-        - El archivo está dañado.
-        - El PDF está protegido o tiene restricciones.
-        - El documento contiene imágenes difíciles de reconocer.
-        - No se pudo completar el reconocimiento de texto.
-
-        **Qué podés hacer:**
-
-        1. Comprobá que el PDF se abra correctamente.
-        2. Intentá abrirlo con un lector de PDF.
-        3. Si es un documento escaneado, verificá que las páginas
-           sean legibles y estén bien orientadas.
-        4. Volvé a intentar procesarlo.
-        """)
-
-    with st.expander("🤖 Gemini muestra un error o está ocupado"):
-
-        st.markdown("""
-        El servicio de inteligencia artificial puede presentar
-        errores temporales, límites de uso o problemas de conexión.
-
-        **Qué podés hacer:**
-
-        1. Esperá unos minutos.
-        2. Volvé a intentar el análisis.
-        3. Verificá que la conexión a internet funcione.
-
-        Si el servicio continúa fallando, el problema puede estar
-        en Gemini y no necesariamente en tu aplicación.
-        """)
-
-    with st.expander("📊 Los gráficos no muestran información"):
-
-        st.markdown("""
-        Los gráficos se generan a partir de los datos disponibles
-        en los documentos procesados.
-
-        Si todavía no cargaste documentos o Gemini no pudo analizarlos,
-        algunos gráficos no tendrán información para mostrar.
-
-        **Qué podés hacer:**
-
-        - Comprobar si hay documentos procesados.
-        - Revisar si los documentos tienen datos analizados.
-        - Verificar que los campos necesarios estén identificados.
-
-        No es necesario que todos los gráficos tengan datos para
-        que el resto de la aplicación funcione.
-        """)
-
-    # ==================================================
-    # RECOMENDACIONES DE SEGURIDAD
-    # ==================================================
-
-    st.markdown("---")
-
-    st.subheader("🔐 Recomendaciones de seguridad")
-
-    st.markdown("""
-        <div class="tarjeta">
-            <ul>
-                <li>No compartas el usuario, ni contraseña de esta aplicación web.</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # ==================================================
-    # INFORMACIÓN FINAL
-    # ==================================================
-
-    st.markdown("---")
-
-    st.success(
-        "Si encontrás un problema, anotá el mensaje de error "
-        "y en qué paso ocurrió para facilitar su diagnóstico."
-    )
-
+    st.title("❓ Ayuda")
     st.caption(
-        "Sistema de gestión documental — "
-        "Honorable Concejo Deliberante de Tintina."
+        "Centro de ayuda y recursos para utilizar "
+        "el Sistema de Gestión Documental."
     )
+
+    # ==============================================
+    # BUSCADOR DE AYUDA
+    # ==============================================
+
+    st.markdown("""
+    <div class="tarjeta">
+        <h3>¿En qué podemos ayudarte?</h3>
+        <p>
+            Encontrá respuestas e instrucciones para
+            utilizar las diferentes funciones del sistema.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    busqueda_ayuda = st.text_input(
+        "🔎 Buscar en la ayuda",
+        placeholder="Ej.: subir documentos, buscar, estadísticas..."
+    )
+
+    # ==============================================
+    # GUÍAS RÁPIDAS
+    # ==============================================
+
+    st.markdown("## 📚 Guías rápidas")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.markdown("""
+        <div class="tarjeta" style="text-align:center;">
+            <h2>📤</h2>
+            <h4>Procesar documentos</h4>
+            <p>Aprendé a subir documentos PDF
+            y extraer su información.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="tarjeta" style="text-align:center;">
+            <h2>📂</h2>
+            <h4>Buscar documentos</h4>
+            <p>Encontrá archivos mediante
+            filtros y palabras clave.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("""
+        <div class="tarjeta" style="text-align:center;">
+            <h2>📊</h2>
+            <h4>Estadísticas</h4>
+            <p>Visualizá gráficos e indicadores
+            de la actividad documental.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("""
+        <div class="tarjeta" style="text-align:center;">
+            <h2>⚙️</h2>
+            <h4>Configuración</h4>
+            <p>Conocé las opciones disponibles
+            de la plataforma.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ==============================================
+    # PREGUNTAS FRECUENTES
+    # ==============================================
+
+    st.markdown("---")
+    st.markdown("## ❔ Preguntas frecuentes")
+
+    preguntas = [
+        (
+            "¿Qué tipos de documentos puedo subir?",
+            "El sistema permite incorporar archivos en formato PDF "
+            "para su procesamiento y organización."
+        ),
+        (
+            "¿Cómo se procesa un documento?",
+            "Ingresá en Procesar documentos, seleccioná los archivos "
+            "PDF y presioná el botón para iniciar el procesamiento. "
+            "El sistema extraerá el texto y utilizará inteligencia "
+            "artificial para identificar información relevante."
+        ),
+        (
+            "¿Cómo puedo buscar un documento específico?",
+            "Ingresá en la sección Documentos o Buscar documentos. "
+            "Utilizá las opciones de búsqueda y los filtros disponibles "
+            "para localizar el archivo que necesitás."
+        ),
+        (
+            "¿Qué significan los estados de los documentos?",
+            "Los estados permiten conocer si un documento fue "
+            "analizado correctamente o si todavía está pendiente "
+            "de procesamiento."
+        ),
+        (
+            "¿Cómo se generan las estadísticas?",
+            "Los indicadores y gráficos se construyen utilizando "
+            "la información disponible de los documentos procesados."
+        ),
+        (
+            "¿Qué sucede si la inteligencia artificial no identifica "
+            "un dato?",
+            "El campo puede quedar sin identificar. Es recomendable "
+            "revisar la información obtenida antes de utilizarla "
+            "como dato institucional definitivo."
+        ),
+        (
+            "¿Qué hago si un archivo PDF no se puede procesar?",
+            "Comprobá que el archivo se encuentre en buen estado, "
+            "que pueda abrirse correctamente y que no tenga "
+            "restricciones que impidan su lectura."
+        ),
+        (
+            "¿Puedo descargar la información?",
+            "La sección de estadísticas permite descargar los datos "
+            "disponibles en formato CSV."
+        )
+    ]
+
+    # Filtrar preguntas según la búsqueda
+    preguntas_filtradas = [
+        (pregunta, respuesta)
+        for pregunta, respuesta in preguntas
+        if busqueda_ayuda.lower() in (
+            pregunta + " " + respuesta
+        ).lower()
+    ]
+
+    col_faq, col_recursos = st.columns([1, 1])
+
+    with col_faq:
+
+        st.markdown("### 💬 Consultas habituales")
+
+        if preguntas_filtradas:
+
+            for pregunta, respuesta in preguntas_filtradas:
+
+                with st.expander(pregunta):
+                    st.write(respuesta)
+
+        else:
+            st.info(
+                "No encontramos resultados. "
+                "Probá con otras palabras."
+            )
+
+    # ==============================================
+    # TUTORIALES Y RECURSOS
+    # ==============================================
+
+    with col_recursos:
+
+        st.markdown("### 🎓 Tutoriales y recursos")
+
+        with st.container(border=True):
+            st.markdown("**📄 Procesamiento de documentos**")
+            st.caption(
+                "Conocé los pasos para incorporar y analizar "
+                "archivos PDF."
+            )
+
+        with st.container(border=True):
+            st.markdown("**🔎 Búsqueda y filtros**")
+            st.caption(
+                "Aprendé a localizar documentos y consultar "
+                "su información."
+            )
+
+        with st.container(border=True):
+            st.markdown("**📊 Interpretación de estadísticas**")
+            st.caption(
+                "Comprendé los indicadores y gráficos "
+                "del sistema."
+            )
+
+    # ==============================================
+    # RECOMENDACIONES DE SEGURIDAD
+    # ==============================================
+
+    st.markdown("---")
+    st.markdown("## 🔐 Recomendaciones de seguridad")
+
+    st.info("""
+    - No compartas tu usuario ni contraseña.
+    - Verificá los datos extraídos antes de utilizarlos.
+    - Conservá los documentos institucionales originales.
+    - Utilizá el sistema de manera responsable.
+    """)
+
+    # ==============================================
+    # CONTACTO Y SOPORTE
+    # ==============================================
+
+    st.markdown("---")
+
+    col_contacto, col_info = st.columns([1, 1])
+
+    with col_contacto:
+
+        st.markdown("### 🆘 ¿Necesitás más ayuda?")
+
+        st.write(
+            "Si tenés alguna consulta o inconveniente "
+            "con el funcionamiento del sistema, podés "
+            "comunicarte con la persona responsable "
+            "de su desarrollo."
+        )
+
+        st.markdown("""
+        <div class="tarjeta">
+            <h4>👩‍💻 Responsable del desarrollo</h4>
+            <p><b>Nombre:</b> Priscila Ruiz</p>
+            <p><b>Correo electrónico:</b>priscilaruiz593@gmail.com</p>
+            <p><b>WhatsApp:</b> +54 9 3846 41-6646</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_info:
+
+        st.markdown("### 🏛️ Información institucional")
+
+        st.markdown("""
+        <div class="tarjeta">
+            <p><b>Institución:</b></p>
+            <p>Honorable Concejo Deliberante de Tintina</p>
+            <p><b>Sistema:</b></p>
+            <p>Gestión Documental</p>
+            <p><b>Función:</b></p>
+            <p>Organización, búsqueda, clasificación
+                y análisis de documentos institucionales.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ==============================================
+    # PIE DE PÁGINA
+    # ==============================================
+
+    st.markdown("---")
+
+    st.markdown("""
+    <div style="
+        background: #092B50;
+        color: white;
+        padding: 22px;
+        border-radius: 12px;
+        text-align: center;
+    ">
+        <h4 style="color:white;">
+            🏛️ Honorable Concejo Deliberante de Tintina
+        </h4>
+        <p style="color:#D5E4F5;">
+            Sistema de Gestión Documental
+        </p>
+        <p style="color:#D5E4F5;">
+            Transparencia, compromiso y trabajo
+            al servicio de nuestra comunidad.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
