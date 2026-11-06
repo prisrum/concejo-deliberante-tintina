@@ -2007,210 +2007,211 @@ elif seccion == "📊 Estadísticas":
 
 elif seccion == "❓ Ayuda":
 
-    # ==============================================
+    # ==================================================
     # PÁGINA DE AYUDA Y SOPORTE
-    # ==============================================
+    # ==================================================
 
-    st.title("❓ Ayuda")
-    st.caption(
-        "Centro de ayuda y recursos para utilizar "
-        "el Sistema de Gestión Documental."
-    )
-
-    # ==============================================
-    # BUSCADOR DE AYUDA
-    # ==============================================
+    st.title("❓ Ayuda y soporte")
 
     st.markdown("""
-    <div class="tarjeta">
-        <h3>¿En qué podemos ayudarte?</h3>
-        <p>
-            Encontrá respuestas e instrucciones para
-            utilizar las diferentes funciones del sistema.
-        </p>
-    </div>
+        <div class="tarjeta">
+            <h3>🏛️ Bienvenido al sistema de gestión documental</h3>
+            <p>
+                En esta sección encontrarás una guía sencilla
+                para conocer y utilizar las principales funciones
+                del sistema del Honorable Concejo Deliberante de Tintina.
+            </p>
+        </div>
     """, unsafe_allow_html=True)
 
-    busqueda_ayuda = st.text_input(
-        "🔎 Buscar en la ayuda",
-        placeholder="Ej.: subir documentos, buscar, estadísticas..."
-    )
-
-    # ==============================================
+    # ==================================================
     # GUÍAS RÁPIDAS
-    # ==============================================
+    # ==================================================
 
-    st.markdown("## 📚 Guías rápidas")
+    st.subheader("📚 Guías rápidas")
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("""
-        <div class="tarjeta" style="text-align:center;">
-            <h2>📤</h2>
-            <h4>Procesar documentos</h4>
-            <p>Aprendé a subir documentos PDF
-            y extraer su información.</p>
-        </div>
+            <div class="tarjeta" style="text-align:center; min-height:210px;">
+                <h1>📤</h1>
+                <h3>Procesar documentos</h3>
+                <p>Aprendé a cargar archivos PDF y extraer su información.</p>
+            </div>
         """, unsafe_allow_html=True)
 
     with col2:
         st.markdown("""
-        <div class="tarjeta" style="text-align:center;">
-            <h2>📂</h2>
-            <h4>Buscar documentos</h4>
-            <p>Encontrá archivos mediante
-            filtros y palabras clave.</p>
-        </div>
+            <div class="tarjeta" style="text-align:center; min-height:210px;">
+                <h1>📁</h1>
+                <h3>Documentos</h3>
+                <p>Consultá los archivos institucionales y revisá la información disponible.</p>
+            </div>
         """, unsafe_allow_html=True)
 
     with col3:
         st.markdown("""
-        <div class="tarjeta" style="text-align:center;">
-            <h2>📊</h2>
-            <h4>Estadísticas</h4>
-            <p>Visualizá gráficos e indicadores
-            de la actividad documental.</p>
-        </div>
+            <div class="tarjeta" style="text-align:center; min-height:210px;">
+                <h1>📊</h1>
+                <h3>Estadísticas</h3>
+                <p>Visualizá gráficos e indicadores de la actividad documental.</p>
+            </div>
         """, unsafe_allow_html=True)
 
-    with col4:
+    # ==================================================
+    # GUÍA DE USO
+    # ==================================================
+
+    st.markdown("---")
+    st.subheader("📖 Cómo utilizar el sistema")
+
+    with st.expander("📄 1. ¿Cómo cargar documentos PDF?"):
+
         st.markdown("""
-        <div class="tarjeta" style="text-align:center;">
-            <h2>⚙️</h2>
-            <h4>Configuración</h4>
-            <p>Conocé las opciones disponibles
-            de la plataforma.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        **Pasos para incorporar documentos al sistema:**
 
-    # ==============================================
-    # PREGUNTAS FRECUENTES
-    # ==============================================
+        1. Ingresá en **🤖 Procesar documentos**.
+        2. Presioná el botón para seleccionar archivos.
+        3. Elegí uno o varios documentos en formato PDF.
+        4. Verificá que los archivos seleccionados sean correctos.
+        5. Presioná **Procesar documentos**.
+        6. Esperá a que finalice el procesamiento.
+        7. Una vez terminado, ingresá en **📄 Documentos**
+           para consultar los archivos.
+        """)
+
+    with st.expander("🤖 2. ¿Cómo funciona el análisis con inteligencia artificial?"):
+
+        st.markdown("""
+        El sistema utiliza Google Gemini para analizar el texto
+        extraído de los documentos.
+
+        Cuando el análisis funciona correctamente, puede identificar:
+
+        - Fecha del documento.
+        - Año.
+        - Tipo de documento.
+        - Número del documento.
+        - Tema principal.
+        - Categoría general.
+        - Descripción.
+        - Área o comisión relacionada.
+
+        La información que no aparece en el documento puede quedar
+        sin identificar.
+
+        **Recomendación:** revisá los resultados antes de utilizarlos
+        como información institucional definitiva.
+        """)
+
+    with st.expander("📁 3. ¿Cómo consultar los documentos?"):
+
+        st.markdown("""
+        Ingresá en **📄 Documentos** para consultar el repositorio
+        documental y revisar las opciones disponibles.
+
+        Según las funciones habilitadas, podrás consultar los datos
+        extraídos y visualizar o descargar el PDF original.
+
+        Si un documento no aparece, comprobá que se haya procesado
+        y que continúe disponible en el sistema.
+        """)
+
+    with st.expander("📊 4. ¿Cómo interpretar las estadísticas?"):
+
+        st.markdown("""
+        La sección **📊 Estadísticas** presenta indicadores y gráficos
+        construidos a partir de los documentos procesados.
+
+        Entre otros datos, puede mostrar:
+
+        - Cantidad total de documentos.
+        - Documentos analizados con inteligencia artificial.
+        - Tipos de documentos identificados.
+        - Actividad documental por año.
+        - Categorías y áreas o comisiones.
+        - Documentos pendientes de análisis.
+
+        Los gráficos dependen de la información disponible.
+        Si faltan documentos o no se identificaron determinados
+        campos, algunos gráficos pueden aparecer vacíos.
+        """)
+
+    # ==================================================
+    # PROBLEMAS FRECUENTES
+    # ==================================================
 
     st.markdown("---")
-    st.markdown("## ❔ Preguntas frecuentes")
+    st.subheader("🛠️ Problemas frecuentes")
 
-    preguntas = [
-        (
-            "¿Qué tipos de documentos puedo subir?",
-            "El sistema permite incorporar archivos en formato PDF "
-            "para su procesamiento y organización."
-        ),
-        (
-            "¿Cómo se procesa un documento?",
-            "Ingresá en Procesar documentos, seleccioná los archivos "
-            "PDF y presioná el botón para iniciar el procesamiento. "
-            "El sistema extraerá el texto y utilizará inteligencia "
-            "artificial para identificar información relevante."
-        ),
-        (
-            "¿Cómo puedo buscar un documento específico?",
-            "Ingresá en la sección Documentos o Buscar documentos. "
-            "Utilizá las opciones de búsqueda y los filtros disponibles "
-            "para localizar el archivo que necesitás."
-        ),
-        (
-            "¿Qué significan los estados de los documentos?",
-            "Los estados permiten conocer si un documento fue "
-            "analizado correctamente o si todavía está pendiente "
-            "de procesamiento."
-        ),
-        (
-            "¿Cómo se generan las estadísticas?",
-            "Los indicadores y gráficos se construyen utilizando "
-            "la información disponible de los documentos procesados."
-        ),
-        (
-            "¿Qué sucede si la inteligencia artificial no identifica "
-            "un dato?",
-            "El campo puede quedar sin identificar. Es recomendable "
-            "revisar la información obtenida antes de utilizarla "
-            "como dato institucional definitivo."
-        ),
-        (
-            "¿Qué hago si un archivo PDF no se puede procesar?",
-            "Comprobá que el archivo se encuentre en buen estado, "
-            "que pueda abrirse correctamente y que no tenga "
-            "restricciones que impidan su lectura."
-        ),
-        (
-            "¿Puedo descargar la información?",
-            "La sección de estadísticas permite descargar los datos "
-            "disponibles en formato CSV."
-        )
-    ]
+    with st.expander("❌ El sistema no puede leer un PDF"):
 
-    # Filtrar preguntas según la búsqueda
-    preguntas_filtradas = [
-        (pregunta, respuesta)
-        for pregunta, respuesta in preguntas
-        if busqueda_ayuda.lower() in (
-            pregunta + " " + respuesta
-        ).lower()
-    ]
+        st.markdown("""
+        **Posibles causas:**
 
-    col_faq, col_recursos = st.columns([1, 1])
+        - El archivo está dañado.
+        - El PDF está protegido o tiene restricciones.
+        - El documento contiene imágenes difíciles de reconocer.
+        - No se pudo completar el reconocimiento de texto.
 
-    with col_faq:
+        **Qué podés hacer:**
 
-        st.markdown("### 💬 Consultas habituales")
+        1. Comprobá que el PDF se abra correctamente.
+        2. Intentá abrirlo con un lector de PDF.
+        3. Si es un documento escaneado, verificá que las páginas
+           sean legibles y estén bien orientadas.
+        4. Volvé a intentar procesarlo.
+        """)
 
-        if preguntas_filtradas:
+    with st.expander("🤖 Gemini muestra un error o está ocupado"):
 
-            for pregunta, respuesta in preguntas_filtradas:
+        st.markdown("""
+        El servicio de inteligencia artificial puede presentar
+        errores temporales, límites de uso o problemas de conexión.
 
-                with st.expander(pregunta):
-                    st.write(respuesta)
+        **Qué podés hacer:**
 
-        else:
-            st.info(
-                "No encontramos resultados. "
-                "Probá con otras palabras."
-            )
+        1. Esperá unos minutos.
+        2. Volvé a intentar el análisis.
+        3. Verificá que la conexión a internet funcione.
 
-    # ==============================================
-    # TUTORIALES Y RECURSOS
-    # ==============================================
+        Si el servicio continúa fallando, el problema puede estar
+        en Gemini y no necesariamente en tu aplicación.
+        """)
 
-    with col_recursos:
+    with st.expander("📊 Los gráficos no muestran información"):
 
-        st.markdown("### 🎓 Tutoriales y recursos")
+        st.markdown("""
+        Los gráficos se generan a partir de los datos disponibles
+        en los documentos procesados.
 
-        with st.container(border=True):
-            st.markdown("**📄 Procesamiento de documentos**")
-            st.caption(
-                "Conocé los pasos para incorporar y analizar "
-                "archivos PDF."
-            )
+        Si todavía no cargaste documentos o Gemini no pudo analizarlos,
+        algunos gráficos no tendrán información para mostrar.
 
-        with st.container(border=True):
-            st.markdown("**🔎 Búsqueda y filtros**")
-            st.caption(
-                "Aprendé a localizar documentos y consultar "
-                "su información."
-            )
+        **Qué podés hacer:**
 
-        with st.container(border=True):
-            st.markdown("**📊 Interpretación de estadísticas**")
-            st.caption(
-                "Comprendé los indicadores y gráficos "
-                "del sistema."
-            )
+        - Comprobar si hay documentos procesados.
+        - Revisar si los documentos tienen datos analizados.
+        - Verificar que los campos necesarios estén identificados.
+        """)
 
-    # ==============================================
+    # ==================================================
     # RECOMENDACIONES DE SEGURIDAD
-    # ==============================================
+    # ==================================================
 
     st.markdown("---")
-    st.markdown("## 🔐 Recomendaciones de seguridad")
+    st.subheader("🔐 Recomendaciones de seguridad")
 
-    st.info("""
-    - No compartas tu usuario ni contraseña.
-    - Verificá los datos extraídos antes de utilizarlos.
-    - Conservá los documentos institucionales originales.
-    - Utilizá el sistema de manera responsable.
-    """)
+    st.markdown("""
+        <div class="tarjeta">
+            <ul>
+                <li>No compartas el usuario ni la contraseña de esta aplicación.</li>
+                <li>Utilizá el sistema de manera responsable.</li>
+                <li>Verificá la información extraída antes de tomarla como definitiva.</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
 
     # ==============================================
     # CONTACTO Y SOPORTE
@@ -2235,7 +2236,7 @@ elif seccion == "❓ Ayuda":
         <div class="tarjeta">
             <h4>👩‍💻 Responsable del desarrollo</h4>
             <p><b>Nombre:</b> Priscila Ruiz</p>
-            <p><b>Correo electrónico:</b>priscilaruiz593@gmail.com</p>
+            <p><b>Correo electrónico:</b> priscilaruiz593@gmail.com</p>
             <p><b>WhatsApp:</b> +54 9 3846 41-6646</p>
         </div>
         """, unsafe_allow_html=True)
@@ -2246,12 +2247,9 @@ elif seccion == "❓ Ayuda":
 
         st.markdown("""
         <div class="tarjeta">
-            <p><b>Institución:</b></p>
-            <p>Honorable Concejo Deliberante de Tintina</p>
-            <p><b>Sistema:</b></p>
-            <p>Gestión Documental</p>
-            <p><b>Función:</b></p>
-            <p>Organización, búsqueda, clasificación
+            <p><b>Institución:</b> Honorable Concejo Deliberante de Tintina</p>
+            <p><b>Sistema:</b> <p>Gestión Documental</p>
+            <p><b>Función:</b> Organización, búsqueda, clasificación
                 y análisis de documentos institucionales.</p>
         </div>
         """, unsafe_allow_html=True)
