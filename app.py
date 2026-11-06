@@ -2248,7 +2248,7 @@ elif seccion == "❓ Ayuda":
         st.markdown("""
         <div class="tarjeta">
             <p><b>Institución:</b> Honorable Concejo Deliberante de Tintina</p>
-            <p><b>Sistema:</b> <p>Gestión Documental</p>
+            <p><b>Sistema:</b> Gestión Documental</p>
             <p><b>Función:</b> Organización, búsqueda, clasificación
                 y análisis de documentos institucionales.</p>
         </div>
@@ -2268,7 +2268,7 @@ elif seccion == "❓ Ayuda":
         border-radius: 12px;
         text-align: center;
     ">
-        <h4 style="color:white;">
+        <h4 style="color:#D5E4F5;">
             🏛️ Honorable Concejo Deliberante de Tintina
         </h4>
         <p style="color:#D5E4F5;">
