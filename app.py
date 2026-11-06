@@ -1275,6 +1275,7 @@ elif seccion == "🤖 Procesar documentos":
                         numero_documento = obtener_numero(texto)
 
                         # Analizar con Gemini los datos que requieren IA
+
                         datos_ia = analizar_con_gemini(texto) or {}
 
                         # Unir los datos extraídos por Python y Gemini
@@ -1298,21 +1299,25 @@ elif seccion == "🤖 Procesar documentos":
                             )
                         }
 
-                        # Guardar el documento aunque Gemini falle
-                        resultados.append({
+                        # Guardar el documento aunque Gemini no responda
+                        documento = {
                             "nombre": archivo.name,
                             "texto": texto,
                             "estado": (
-                                "Procesado"
-                                if datos_ia
+                                "Procesado" if datos_ia
                                 else "Pendiente de análisis"
                             ),
                             "pdf": archivo.getvalue(),
                             "datos": datos
-                        })
+                        }
 
-                        # Guardar el documento en SQLite
-                        guardar_documento(resultados[-1])
+                        resultados.append(documento)
+
+                        # Guardar en la base de datos
+                        try:
+                            guardar_documento(documento)
+                        except Exception as error:
+                            st.warning(f"El documento quedó en la sesión, pero no se pudo guardar en la base de datos: {error}")
 
                         # ==========================================
                         # RESUMEN FINAL
