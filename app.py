@@ -1236,24 +1236,19 @@ elif seccion == "🤖 Procesar documentos":
             for indice, archivo in enumerate(archivos):
 
                 mensaje_progreso.info(
-                    f"Procesando documento "
-                    f"{indice + 1} de {total}..."
+                    f"Procesando documento {indice + 1} de {total}..."
                 )
-            
-                    # Extraer el texto del PDF
-                texto = extraer_texto_pdf(archivo)
 
-                st.write("PRUEBA: texto extraído del PDF")
-                st.code(texto[:3000])
+                # Extraer el texto del PDF (sin mostrarlo en pantalla)
+                texto = extraer_texto_pdf(archivo)
 
                 if not texto or not texto.strip():
 
-                        errores.append({
-                            "nombre": archivo.name,
-                            "motivo": "No se pudo extraer texto del documento."
-                        })
-
-                else:
+                    errores.append({
+                        "nombre": archivo.name,
+                        "motivo": "No se pudo extraer texto del documento."
+                    })
+                else:    
 
                        # Extraer los datos directamente del texto
                         fecha = obtener_fecha(texto)
@@ -1310,7 +1305,7 @@ elif seccion == "🤖 Procesar documentos":
 
                         documentos_analizados = sum(
                             1 for documento in resultados
-                            if documento.get("datos") == "Procesado"
+                            if documento.get("estado") == "Procesado"
                         )
 
                         documentos_pendientes = sum(
