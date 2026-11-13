@@ -2299,7 +2299,7 @@ elif seccion == "❓ Ayuda":
 
     st.markdown("""
     <div style="
-        background: #092B50;
+        background: #D5E4F5;
         color: white;
         padding: 22px;
         border-radius: 12px;
