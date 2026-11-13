@@ -759,11 +759,6 @@ with st.sidebar:
     )
 
     st.markdown(
-        "<h2 style='color:white;'>Concejo </h2>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
         "<p style='color:#d5eaff;'>"
         "Sistema de gestión documental"
         "</p>",
@@ -771,8 +766,6 @@ with st.sidebar:
     )
 
     st.divider()
-
-    st.markdown("### NAVEGACIÓN")
 
     # Opciones disponibles en el menú lateral
     opciones_menu = [
@@ -813,7 +806,6 @@ if seccion == "🏠 Inicio":
     st.markdown("""
         <div class="encabezado">
             <h1>Bienvenido al Sistema de Gestión Documental del Concejo</h1>
-            <p>Honorable Concejo Deliberante de Tintina</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -965,7 +957,7 @@ elif seccion == "📄 Documentos":
     # Imagen ilustrativa del repositorio documental
     st.image(
         "imagenes/documentos_ia.jpeg",
-        use_container_width=True
+        width=450
     )
     
     st.markdown("""
