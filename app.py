@@ -2308,10 +2308,10 @@ elif seccion == "❓ Ayuda":
         <h4 style="color:#D5E4F5;">
             🏛️ Honorable Concejo Deliberante de Tintina
         </h4>
-        <p style="color:#D5E4F5;">
+        <p style="color:#000000;">
             Sistema de Gestión Documental
         </p>
-        <p style="color:#D5E4F5;">
+        <p style="color:#000000;">
             Transparencia, compromiso y trabajo
             al servicio de nuestra comunidad.
         </p>
