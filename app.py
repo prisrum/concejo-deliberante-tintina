@@ -824,21 +824,22 @@ if seccion == "🏠 Inicio":
     # ==============================================
 
     import base64
+    import textwrap
 
     col_foto, col_info = st.columns([1.1, 1])
 
     with col_foto:
 
-        # Cargar la imagen institucional
+    # Cargar la imagen institucional
         with open("imagenes/edificio_concejo.jpeg", "rb") as archivo:
             imagen_base64 = base64.b64encode(
                 archivo.read()
             ).decode()
 
-        # Tarjeta glassmorphic institucional
-        st.markdown(f"""
+    # Tarjeta glassmorphic institucional
+        st.markdown(
+            textwrap.dedent(f"""
             <div class="tarjeta">
-
                 <img
                     src="data:image/jpeg;base64,{imagen_base64}"
                     style="
@@ -847,20 +848,18 @@ if seccion == "🏠 Inicio":
                         margin-bottom: 15px;
                     "
                 >
-
                 <h3>🏛️ Nuestra institución</h3>
-
                 <p>
                     Honorable Concejo Deliberante de Tintina
                 </p>
-
                 <p>
                     Tintina, provincia de Santiago del Estero,
-                    Argentina.
+                   Argentina.
                 </p>
-
             </div>
-        """, unsafe_allow_html=True)
+            """),
+            unsafe_allow_html=True
+        )
 
     with col_info:
 
