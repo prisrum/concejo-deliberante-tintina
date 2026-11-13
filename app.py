@@ -752,8 +752,14 @@ hr {
 
 with st.sidebar:
 
+    # Logo institucional
+    st.image(
+        "imagenes/logo_concejo.jpeg",
+        width=130
+    )
+
     st.markdown(
-        "<h2 style='color:white;'>🏛️ Concejo</h2>",
+        "<h2 style='color:white;'>Concejo </h2>",
         unsafe_allow_html=True
     )
 
@@ -820,6 +826,12 @@ if seccion == "🏠 Inicio":
     col_foto, col_info = st.columns([1.1, 1])
 
     with col_foto:
+
+        # Fotografía del edificio institucional
+        st.image(
+            "imagenes/edificio_concejo.jpeg",
+            use_container_width=True
+        )
 
         st.markdown("""
             <div class="tarjeta">
@@ -935,9 +947,15 @@ elif seccion == "📄 Documentos":
     # ==================================================
 
     import pandas as pd
-
+   
     st.title("📄 Documentos")
 
+    # Imagen ilustrativa del repositorio documental
+    st.image(
+        "imagenes/documentos_ia.jpeg",
+        use_container_width=True
+    )
+    
     st.markdown("""
         <div class="tarjeta">
             <h3>📚 Repositorio documental</h3>
