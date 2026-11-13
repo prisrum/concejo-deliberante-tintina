@@ -823,30 +823,44 @@ if seccion == "🏠 Inicio":
     # INFORMACIÓN SOBRE EL CONCEJO
     # ==============================================
 
+    import base64
+
     col_foto, col_info = st.columns([1.1, 1])
 
     with col_foto:
 
-        # Tarjeta institucional con fotografía
-        with st.container(border=True):
+        # Cargar la imagen institucional
+        with open("imagenes/edificio_concejo.jpeg", "rb") as archivo:
+            imagen_base64 = base64.b64encode(
+                archivo.read()
+            ).decode()
 
-            st.image(
-                "imagenes/edificio_concejo.jpeg",
-                use_container_width=True
-            )
+        # Tarjeta glassmorphic institucional
+        st.markdown(f"""
+            <div class="tarjeta">
 
-            st.markdown("""
-                <div class="tarjeta">
-                    <h3>🏛️ Nuestra institución</h3>
-                    <p>
-                        Honorable Concejo Deliberante de Tintina
-                    </p>
-                    <p>
-                        Tintina, provincia de Santiago del Estero,
-                        Argentina.
-                    </p>
-                </div>
-            """, unsafe_allow_html=True)
+                <img
+                    src="data:image/jpeg;base64,{imagen_base64}"
+                    style="
+                        width: 100%;
+                        border-radius: 12px;
+                        margin-bottom: 15px;
+                    "
+                >
+
+                <h3>🏛️ Nuestra institución</h3>
+
+                <p>
+                    Honorable Concejo Deliberante de Tintina
+                </p>
+
+                <p>
+                    Tintina, provincia de Santiago del Estero,
+                    Argentina.
+                </p>
+
+            </div>
+        """, unsafe_allow_html=True)
 
     with col_info:
 
