@@ -755,7 +755,7 @@ with st.sidebar:
     # Logo institucional
     st.image(
         "imagenes/logo_concejo.jpeg",
-        width=130
+        width=170
     )
 
     st.markdown(
@@ -827,27 +827,26 @@ if seccion == "🏠 Inicio":
 
     with col_foto:
 
-        # Fotografía del edificio institucional
-        st.image(
-            "imagenes/edificio_concejo.jpeg",
-            use_container_width=True
-        )
+        # Tarjeta institucional con fotografía
+        with st.container(border=True):
 
-        st.markdown("""
-            <div class="tarjeta">
-                <h3>🏛️ Nuestra institución</h3>
-                <p>
-                    Honorable Concejo Deliberante de Tintina
-                </p>
-                <p>
-                    Tintina, provincia de Santiago del Estero,
-                    Argentina.
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
+            st.image(
+                "imagenes/edificio_concejo.jpeg",
+                use_container_width=True
+            )
 
-        # Más adelante podemos incorporar aquí
-        # una fotografía real del edificio.
+            st.markdown("""
+                <div class="tarjeta">
+                    <h3>🏛️ Nuestra institución</h3>
+                    <p>
+                        Honorable Concejo Deliberante de Tintina
+                    </p>
+                    <p>
+                        Tintina, provincia de Santiago del Estero,
+                        Argentina.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
 
     with col_info:
 
