@@ -957,7 +957,7 @@ elif seccion == "📄 Documentos":
     # Imagen ilustrativa del repositorio documental
     st.image(
         "imagenes/documentos_ia.png",
-        width=450
+        width=700
     )
     
     st.markdown("""
